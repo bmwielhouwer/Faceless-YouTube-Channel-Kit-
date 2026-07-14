@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Faceless YouTube Kit — Troubleshooting</title>
+<style>
+  :root{
+    --bg:#f6f8fb; --card:#ffffff; --ink:#131722; --muted:#5b6472;
+    --line:#e4e9f0; --accent:#1FA2FF; --accent-ink:#0b74c4;
+    --ok:#1f9d55; --warn:#c9820a; --bad:#d64545;
+    --chip:#eef4fb; --shadow:0 1px 3px rgba(16,24,40,.06),0 8px 24px rgba(16,24,40,.06);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0c1016; --card:#141a22; --ink:#e9eef5; --muted:#93a0b1;
+      --line:#232c38; --accent:#3db6ff; --accent-ink:#8fd3ff;
+      --ok:#3ecf8e; --warn:#e0a53d; --bad:#f0736f;
+      --chip:#1a2431; --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#f6f8fb; --card:#fff; --ink:#131722; --muted:#5b6472; --line:#e4e9f0;
+    --accent:#1FA2FF; --accent-ink:#0b74c4; --ok:#1f9d55; --warn:#c9820a; --bad:#d64545;
+    --chip:#eef4fb; --shadow:0 1px 3px rgba(16,24,40,.06),0 8px 24px rgba(16,24,40,.06);
+  }
+  :root[data-theme="dark"]{
+    --bg:#0c1016; --card:#141a22; --ink:#e9eef5; --muted:#93a0b1; --line:#232c38;
+    --accent:#3db6ff; --accent-ink:#8fd3ff; --ok:#3ecf8e; --warn:#e0a53d; --bad:#f0736f;
+    --chip:#1a2431; --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  .wrap{max-width:860px;margin:0 auto;padding:32px 20px 80px}
+  header.hero{padding:20px 0 8px}
+  .kicker{display:inline-block;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent-ink);font-weight:700;margin-bottom:8px}
+  h1{font-size:clamp(28px,5vw,40px);line-height:1.1;margin:0 0 10px;letter-spacing:-.02em}
+  .lede{color:var(--muted);font-size:17px;margin:0 0 4px;max-width:60ch}
+  .search{position:sticky;top:0;z-index:5;padding:16px 0;background:linear-gradient(var(--bg),var(--bg) 78%,transparent)}
+  .search input{width:100%;padding:14px 44px;border:1px solid var(--line);border-radius:12px;
+    background:var(--card);color:var(--ink);font-size:16px;box-shadow:var(--shadow);outline:none}
+  .search input:focus{border-color:var(--accent)}
+  .search .ico{position:absolute;margin:15px 0 0 14px;color:var(--muted);pointer-events:none}
+  .cat{margin:26px 0 10px;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  details.item{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    margin:10px 0;box-shadow:var(--shadow);overflow:hidden}
+  details.item[open]{border-color:var(--accent)}
+  summary{list-style:none;cursor:pointer;padding:16px 18px;display:flex;align-items:center;gap:12px;font-weight:600}
+  summary::-webkit-details-marker{display:none}
+  summary:hover{background:var(--chip)}
+  .sev{flex:0 0 auto;width:9px;height:9px;border-radius:50%;background:var(--muted)}
+  .sev.ok{background:var(--ok)} .sev.warn{background:var(--warn)} .sev.bad{background:var(--bad)}
+  .q{flex:1}
+  .chev{flex:0 0 auto;color:var(--muted);transition:transform .18s ease}
+  details[open] .chev{transform:rotate(90deg)}
+  .body{padding:2px 18px 18px;border-top:1px solid var(--line)}
+  .body p{margin:12px 0}
+  .body ul{margin:10px 0;padding-left:20px}
+  .body li{margin:6px 0}
+  .body b{color:var(--ink)}
+  code{background:var(--chip);border:1px solid var(--line);border-radius:6px;
+    padding:1px 6px;font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    color:var(--accent-ink);white-space:nowrap}
+  .fix{margin-top:12px;padding:12px 14px;border-left:3px solid var(--ok);
+    background:color-mix(in srgb,var(--ok) 10%,transparent);border-radius:0 8px 8px 0}
+  .fix b{color:var(--ok)}
+  .toggle{position:fixed;top:14px;right:14px;z-index:9;border:1px solid var(--line);
+    background:var(--card);color:var(--ink);border-radius:999px;padding:8px 12px;cursor:pointer;
+    font-size:13px;box-shadow:var(--shadow)}
+  .empty{display:none;color:var(--muted);text-align:center;padding:40px 0}
+  .empty.show{display:block}
+  footer{margin-top:40px;color:var(--muted);font-size:13px;text-align:center;border-top:1px solid var(--line);padding-top:20px}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);font-size:13px;margin-top:14px}
+  .legend span{display:inline-flex;align-items:center;gap:7px}
+  a{color:var(--accent-ink)}
+</style>
+</head>
+<body>
+<button class="toggle" id="themeBtn" aria-label="Toggle theme">◐ Theme</button>
+<div class="wrap">
+  <header class="hero">
+    <span class="kicker">Faceless YouTube Kit</span>
+    <h1>Troubleshooting Guide</h1>
+    <p class="lede">Find the symptom, get the fix. Most issues come down to one
+      setting or one Google/API permission — each card below tells you exactly
+      which one.</p>
+    <div class="legend">
+      <span><i class="sev ok" style="width:9px;height:9px;border-radius:50%;display:inline-block;background:var(--ok)"></i> quick setting</span>
+      <span><i class="sev warn" style="width:9px;height:9px;border-radius:50%;display:inline-block;background:var(--warn)"></i> needs a dashboard change</span>
+      <span><i class="sev bad" style="width:9px;height:9px;border-radius:50%;display:inline-block;background:var(--bad)"></i> platform / account issue</span>
+    </div>
+  </header>
+
+  <div class="search">
+    <span class="ico">🔍</span>
+    <input id="q" type="search" placeholder="Search symptoms — e.g. “private”, “stuck”, “TikTok”, “email”…" autocomplete="off">
+  </div>
+
+  <div id="list"></div>
+  <div class="empty" id="empty">No matches. Try a different word, or scroll the full list.</div>
+
+  <footer>
+    Faceless YouTube Kit · Full setup steps live in your written setup guide ·
+    Nothing on this page needs code — everything is a setting or a permission.
+  </footer>
+</div>
+
+<script>
+const ITEMS = [
+  {cat:"Getting started", sev:"bad", q:"Config error on boot: “Missing required environment variable”",
+   html:`<p>The worker won't start until the essentials are set. The log names the exact variable it's missing.</p>
+   <ul><li><b>Required minimum:</b> <code>AIRTABLE_PAT</code>, <code>AIRTABLE_BASE_ID</code>, <code>AIRTABLE_VIDEO_LIBRARY_TABLE_ID</code>, and <code>ELEVENLABS_API_KEY</code>.</li>
+   <li>Set them in your host's <b>Variables</b> tab (Railway) or <b>Environment</b> (Render), then redeploy.</li></ul>
+   <div class="fix"><b>Fix:</b> add the named variable, redeploy, and re-check the logs.</div>`},
+
+  {cat:"Getting started", sev:"warn", q:"Deploy fails on Vercel (“No python entrypoint found”)",
+   html:`<p>This Kit is an always-on <b>background worker</b>, not a website. Vercel only runs short-lived serverless functions, so it rejects it.</p>
+   <div class="fix"><b>Fix:</b> deploy on <b>Railway</b> (recommended), Render, or Fly.io instead. If Vercel auto-created projects when you connected the repo, delete them.</div>`},
+
+  {cat:"Getting started", sev:"ok", q:"How do I know it's actually working?",
+   html:`<p>Two quick checks:</p>
+   <ul><li>In the host shell run <code>python run.py --check</code> — it validates config and Airtable connectivity.</li>
+   <li>Set one Video Library record's <b>Status</b> to <code>Scripted</code> and watch it move to <code>Processing</code> → <code>Video Ready</code> → <code>Posted</code>.</li></ul>`},
+
+  {cat:"Scripts & topics", sev:"ok", q:"Scripts are off-brand or about the wrong topic",
+   html:`<p>The whole voice of the channel comes from three settings:</p>
+   <ul><li><code>NICHE_TOPIC</code> — what your channel is about, in a phrase.</li>
+   <li><code>CHANNEL_NAME</code> — used in the scripts, watermark, and captions.</li>
+   <li><code>SCRIPT_STYLE_PROMPT</code> — tone, structure, do's and don'ts.</li></ul>
+   <div class="fix"><b>Fix:</b> update those three variables and redeploy. The next weekly run writes in the new voice.</div>`},
+
+  {cat:"Scripts & topics", sev:"ok", q:"Too many (or too few) “vs” comparison videos",
+   html:`<p>The mix of head-to-head comparisons vs. wildcard topics is controlled by <code>COMPARISON_BIAS_RATIO</code> (default <code>5/7</code> — about five of every seven titles are comparisons).</p>
+   <div class="fix"><b>Fix:</b> set it lower (e.g. <code>3/7</code>) for fewer comparisons, or higher (e.g. <code>6/7</code>) for more.</div>`},
+
+  {cat:"Scripts & topics", sev:"warn", q:"No new scripts are being generated",
+   html:`<p>Weekly scripting needs Claude and fires on a schedule.</p>
+   <ul><li><code>ANTHROPIC_API_KEY</code> must be set — without it, no research or scripting happens.</li>
+   <li>It runs on <code>WEEKLY_DAY</code> (0 = Monday) at <code>WEEKLY_HOUR</code>, in your <code>POSTING_TIMEZONE</code>.</li>
+   <li>You can also trigger it on demand: <code>POST /generate-weekly</code> with your <code>TRIGGER_TOKEN</code>.</li></ul>
+   <div class="fix"><b>Fix:</b> confirm the key is set and the timezone/day/hour match when you expect it to run.</div>`},
+
+  {cat:"Scripts & topics", sev:"ok", q:"Duplicate / repeated topics keep showing up",
+   html:`<p>There's a built-in duplicate-topic guard. It skips a new topic if a similar title was created within <code>DEDUP_DAYS</code> days (default 90).</p>
+   <div class="fix"><b>Fix:</b> make sure <code>DEDUP_DAYS</code> is greater than 0. Set it higher to look back further.</div>`},
+
+  {cat:"Rendering", sev:"warn", q:"A record is stuck on “Processing” and never finishes",
+   html:`<p><code>Processing</code> is a lock set while a video renders. If the worker crashed or restarted mid-render, the record can be left there.</p>
+   <ul><li>The worker <b>auto-resumes</b> orphaned renders on its next start.</li>
+   <li>To retry manually, set the record's <b>Status</b> back to <code>Scripted</code>.</li></ul>
+   <div class="fix"><b>Fix:</b> restart the worker, or flip the status to <code>Scripted</code> to re-queue it.</div>`},
+
+  {cat:"Rendering", sev:"warn", q:"A record went to “Error”",
+   html:`<p>On any failure the pipeline writes the reason into the record's <b>Notes</b> field, so you can diagnose without touching the server.</p>
+   <ul><li>Empty script → the record had no text in the script field.</li>
+   <li>Voiceover/verification failures → usually a bad <code>ELEVENLABS_API_KEY</code> or <code>ELEVENLABS_VOICE_ID</code>.</li></ul>
+   <div class="fix"><b>Fix:</b> read the <b>Notes</b> field, fix the cause, then set the record back to <code>Scripted</code> to retry.</div>`},
+
+  {cat:"Rendering", sev:"warn", q:"The worker keeps restarting in the middle of a render",
+   html:`<p>An HTTP healthcheck that probes the worker every few seconds can kill a long, CPU-bound render. The included <code>railway.toml</code> deliberately omits one.</p>
+   <div class="fix"><b>Fix:</b> do <b>not</b> set a Railway <code>healthcheckPath</code>. Keep the shipped config.</div>`},
+
+  {cat:"Rendering", sev:"ok", q:"Videos have a plain gradient background instead of stock footage",
+   html:`<p>Topic-matched B-roll uses Pexels, which is optional.</p>
+   <div class="fix"><b>Fix:</b> set <code>PEXELS_API_KEY</code> (free) to get real stock clips. Without it, the animated gradient is used — everything still renders.</div>`},
+
+  {cat:"Look & feel", sev:"ok", q:"The accent color on thumbnails / video is wrong",
+   html:`<p>The highlight color everywhere is <code>THUMBNAIL_ACCENT_COLOR</code> (a hex value, default electric blue <code>#1FA2FF</code>).</p>
+   <div class="fix"><b>Fix:</b> set it to your brand hex, e.g. <code>#FF8800</code>, and redeploy.</div>`},
+
+  {cat:"Look & feel", sev:"ok", q:"No logo / intro card on the videos",
+   html:`<p>Logo and intro are optional brand images. If they're absent, the Kit falls back to a text watermark (your <code>CHANNEL_NAME</code>) and no intro card — renders still succeed.</p>
+   <div class="fix"><b>Fix:</b> add <code>logo.png</code> and <code>intro.png</code> in <code>faceless_kit/assets/</code> (or point <code>LOGO_PATH</code>/<code>INTRO_PATH</code> at them).</div>`},
+
+  {cat:"Look & feel", sev:"ok", q:"The voice sounds wrong or rushed",
+   html:`<ul><li><code>ELEVENLABS_VOICE_ID</code> — pick the voice from your ElevenLabs library.</li>
+   <li><code>ELEVENLABS_SPEED</code> — lower it (e.g. <code>0.95</code>) if the delivery feels fast.</li>
+   <li><code>ELEVENLABS_STABILITY</code> / <code>ELEVENLABS_STYLE</code> — tune expressiveness.</li></ul>`},
+
+  {cat:"YouTube", sev:"bad", q:"YouTube uploads are Private even though I set privacy to Public",
+   html:`<p>YouTube <b>force-locks every API upload to Private</b> until the Google Cloud project that owns your credentials passes YouTube's one-time API compliance audit. This is a YouTube policy, not a Kit bug — the logs will note it.</p>
+   <div class="fix"><b>Fix:</b> apply for the audit in the Google Cloud Console (API Services / YouTube API compliance). Until it's approved, flip new uploads to Public by hand in YouTube Studio.</div>`},
+
+  {cat:"YouTube", sev:"bad", q:"YouTube upload fails with a 403",
+   html:`<p>A 403 on the upload almost always means one of:</p>
+   <ul><li>The <b>YouTube Data API v3</b> isn't enabled in your Google Cloud project.</li>
+   <li>The Google account has no YouTube channel.</li>
+   <li>Your token is missing the <code>youtube.upload</code> scope.</li></ul>
+   <div class="fix"><b>Fix:</b> enable the API, ensure the account has a channel, and re-run <code>python -m tools.gdrive_auth</code> to mint a fresh <code>YOUTUBE_REFRESH_TOKEN</code> with the upload scope.</div>`},
+
+  {cat:"YouTube", sev:"warn", q:"Custom thumbnail isn't applied (thumbnail 403)",
+   html:`<p>Custom thumbnails are a <b>verified-channel</b> feature on YouTube.</p>
+   <div class="fix"><b>Fix:</b> verify your channel (phone verification in YouTube Studio). The video still uploads — only the custom thumbnail is skipped until verified.</div>`},
+
+  {cat:"TikTok & Facebook", sev:"warn", q:"Nothing is posting to TikTok or Facebook",
+   html:`<p>Auto-posting goes through Zernio and is opt-in.</p>
+   <ul><li><code>ZERNIO_API_KEY</code> must be set.</li>
+   <li>The platform must be listed in <code>PLATFORMS</code> (e.g. <code>youtube,tiktok,facebook</code>). Anything omitted is skipped on purpose.</li>
+   <li>The account must be connected in Zernio — or set <code>ZERNIO_TIKTOK_ACCOUNT_ID</code> / <code>ZERNIO_FACEBOOK_ACCOUNT_ID</code>.</li></ul>
+   <div class="fix"><b>Fix:</b> set the key, include the platform in <code>PLATFORMS</code>, and connect the account.</div>`},
+
+  {cat:"TikTok & Facebook", sev:"bad", q:"Facebook says “unable to fetch” the video",
+   html:`<p>Scheduled posts fetch the video from your worker's <code>/media</code> proxy. If the worker has no public URL, or the Drive file was cleaned up before the scheduled time, the fetch fails.</p>
+   <div class="fix"><b>Fix:</b> make sure the worker has a public address — on Railway this is automatic (<code>RAILWAY_PUBLIC_DOMAIN</code>); otherwise set <code>PUBLIC_BASE_URL</code>. Keep the rendered file in Drive until the post goes out.</div>`},
+
+  {cat:"TikTok & Facebook", sev:"ok", q:"Posts are going out at the wrong time",
+   html:`<p>Times come from your <code>POSTING_TIMEZONE</code> and the <b>Posting Schedule</b> Airtable table (per-platform weekday/weekend times), so you can retune without code.</p>
+   <div class="fix"><b>Fix:</b> confirm <code>POSTING_TIMEZONE</code> is your IANA zone (e.g. <code>America/New_York</code>) and edit the times in the Posting Schedule table.</div>`},
+
+  {cat:"Scheduling", sev:"ok", q:"All the videos publish on the same day instead of one per day",
+   html:`<p>The Kit is designed to release <b>one video per day</b>. A week's scripts are created as <code>Queued</code>, then one is promoted and rendered per day, and only the oldest ready video is published each morning.</p>
+   <div class="fix"><b>Fix:</b> make sure your Status field has a <code>Queued</code> option (or set <code>AIRTABLE_QUEUED_STATUS</code> to match your base). New weekly scripts should be created <code>Queued</code>, not <code>Scripted</code>.</div>`},
+
+  {cat:"Scheduling", sev:"ok", q:"Rendering and publishing happen at the wrong hours",
+   html:`<p>Both are set by <code>POSTING_SCHEDULE</code> (default <code>render 07:00, publish 08:00</code>) interpreted in your <code>POSTING_TIMEZONE</code>.</p>
+   <div class="fix"><b>Fix:</b> set e.g. <code>POSTING_SCHEDULE=render 06:00, publish 09:00</code> and the correct timezone, then redeploy.</div>`},
+
+  {cat:"Notifications", sev:"warn", q:"I'm not getting the “video ready” emails",
+   html:`<p>Emails send through the Gmail API using your Google credentials (many hosts, including Railway, block plain SMTP).</p>
+   <ul><li><code>NOTIFY_EMAIL</code> must be set (where alerts go).</li>
+   <li>Your Google token needs the <code>gmail.send</code> scope — re-run <code>python -m tools.gdrive_auth</code> if it was minted before that.</li>
+   <li>SMTP fallback only works if you set <code>GMAIL_APP_PASSWORD</code> and your host allows SMTP.</li></ul>
+   <div class="fix"><b>Fix:</b> set <code>NOTIFY_EMAIL</code> and re-mint the token so it includes <code>gmail.send</code>.</div>`},
+
+  {cat:"Accounts & keys", sev:"warn", q:"Where do the Google / YouTube credentials come from?",
+   html:`<p>One Google OAuth client (Desktop app) covers Drive, Gmail, and YouTube. You mint the refresh token once, locally:</p>
+   <ul><li>Enable the Drive, Gmail, and YouTube Data v3 APIs in Google Cloud.</li>
+   <li>Create an OAuth <b>Desktop app</b> client → set <code>YOUTUBE_CLIENT_ID</code> + <code>YOUTUBE_CLIENT_SECRET</code>.</li>
+   <li>Run <code>python -m tools.gdrive_auth</code> → it prints <code>YOUTUBE_REFRESH_TOKEN</code>.</li></ul>
+   <div class="fix"><b>Fix:</b> paste all three into your host's variables. See the written setup guide for the full walkthrough.</div>`},
+
+  {cat:"Accounts & keys", sev:"ok", q:"Which fields/statuses does my Airtable base need?",
+   html:`<p>The defaults match the template base you duplicated (<b>Video Title</b>, <b>Status</b>, <b>ElevenLabs Script</b>, etc., with statuses <code>Scripted / Processing / Video Ready / Posted / Error / Queued</code>). If you renamed anything, point the matching <code>AIRTABLE_*_FIELD</code> / <code>AIRTABLE_*_STATUS</code> variable at the new name.</p>
+   <div class="fix"><b>Fix:</b> keep the template's field names, or override the specific variable for anything you renamed.</div>`},
+];
+
+const list = document.getElementById('list');
+const empty = document.getElementById('empty');
+let lastCat = null;
+function render(items){
+  list.innerHTML=''; lastCat=null;
+  items.forEach(it=>{
+    if(it.cat!==lastCat){ const h=document.createElement('div'); h.className='cat'; h.textContent=it.cat; list.appendChild(h); lastCat=it.cat; }
+    const d=document.createElement('details'); d.className='item';
+    d.innerHTML=`<summary><span class="sev ${it.sev}"></span><span class="q">${it.q}</span><span class="chev">›</span></summary><div class="body">${it.html}</div>`;
+    list.appendChild(d);
+  });
+  empty.classList.toggle('show', items.length===0);
+}
+render(ITEMS);
+
+const q=document.getElementById('q');
+q.addEventListener('input',()=>{
+  const t=q.value.trim().toLowerCase();
+  if(!t){ render(ITEMS); return; }
+  const f=ITEMS.filter(it=>(it.q+' '+it.html+' '+it.cat).toLowerCase().includes(t));
+  render(f);
+  if(t.length>1) f.forEach(()=>{}); // keep collapsed; user expands
+});
+
+// Theme toggle (persists via the root data-theme attribute)
+const btn=document.getElementById('themeBtn');
+btn.addEventListener('click',()=>{
+  const cur=document.documentElement.getAttribute('data-theme');
+  const mql=window.matchMedia('(prefers-color-scheme:dark)').matches;
+  const now = cur ? cur : (mql?'dark':'light');
+  document.documentElement.setAttribute('data-theme', now==='dark'?'light':'dark');
+});
+</script>
+</body>
+</html>

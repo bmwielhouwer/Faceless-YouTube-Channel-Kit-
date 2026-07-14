@@ -1,0 +1,73 @@
+# Render.com blueprint — deploys the Faceless YouTube Kit as an always-on
+# background worker (not a web service): it polls Airtable forever.
+#
+# Every value below is set by YOU in the Render dashboard (Environment tab).
+# Nothing here contains a real key, id, or account value — sync:false means
+# "prompt me for this in the dashboard; never store it in the repo."
+services:
+  - type: worker
+    name: faceless-youtube-kit
+    runtime: python
+    plan: starter            # smallest always-on paid plan; free tier sleeps
+    buildCommand: pip install -r requirements.txt
+    startCommand: python run.py
+    autoDeploy: true
+    envVars:
+      # ---- Secrets (set in the dashboard) ----
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: PEXELS_API_KEY
+        sync: false
+      - key: AIRTABLE_PAT
+        sync: false
+      - key: ZERNIO_API_KEY
+        sync: false
+      - key: YOUTUBE_CLIENT_ID
+        sync: false
+      - key: YOUTUBE_CLIENT_SECRET
+        sync: false
+      - key: YOUTUBE_REFRESH_TOKEN
+        sync: false
+      # ---- Config / IDs (set in the dashboard) ----
+      - key: AIRTABLE_BASE_ID
+        sync: false
+      - key: AIRTABLE_VIDEO_LIBRARY_TABLE_ID
+        sync: false
+      - key: AIRTABLE_TRENDING_TOPICS_TABLE_ID
+        sync: false
+      - key: AIRTABLE_POSTING_SCHEDULE_TABLE_ID
+        sync: false
+      - key: YOUTUBE_CHANNEL_ID
+        sync: false
+      - key: ELEVENLABS_VOICE_ID
+        sync: false
+      - key: GDRIVE_FOLDER_ID
+        sync: false
+      - key: NOTIFY_EMAIL
+        sync: false
+      - key: GMAIL_ADDRESS
+        sync: false
+      # ---- Niche / branding (set in the dashboard) ----
+      - key: NICHE_TOPIC
+        sync: false
+      - key: CHANNEL_NAME
+        sync: false
+      - key: SCRIPT_STYLE_PROMPT
+        sync: false
+      - key: COMPARISON_BIAS_RATIO
+        value: 5/7
+      - key: THUMBNAIL_ACCENT_COLOR
+        value: "#1FA2FF"
+      - key: POSTING_TIMEZONE
+        value: America/New_York
+      - key: POSTING_SCHEDULE
+        value: render 07:00, publish 08:00
+      - key: PLATFORMS
+        value: youtube,tiktok,facebook
+      # ---- Fixed defaults ----
+      - key: STORAGE_PROVIDER
+        value: gdrive
+      - key: RENDER_BACKEND
+        value: ffmpeg

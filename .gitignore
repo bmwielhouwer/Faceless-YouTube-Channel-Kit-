@@ -1,0 +1,22 @@
+# Secrets — NEVER commit real credentials
+.env
+*.env
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Pipeline artifacts
+output/
+*.mp3
+*.mp4
+*.log
+.state/
+
+# ...but DO track committed brand assets
+!faceless_kit/assets/music.mp3
