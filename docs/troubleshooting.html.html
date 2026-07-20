@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Faceless YouTube Kit — Troubleshooting</title>
+<style>
+  :root{
+    --bg:#0A0C10;
+    --surface:#12151C;
+    --surface-2:#181C26;
+    --border:#262B36;
+    --border-soft:#1C2029;
+    --text:#E7E9EE;
+    --text-dim:#8991A3;
+    --text-faint:#5B6272;
+    --accent:#3D8FFF;
+    --accent-dim:#1F3A63;
+    --accent-glow: rgba(61,143,255,0.18);
+    --high:#FF6B5E;
+    --high-bg: rgba(255,107,94,0.10);
+    --setup:#F2B84B;
+    --setup-bg: rgba(242,184,75,0.10);
+    --rare:#6FCF97;
+    --rare-bg: rgba(111,207,151,0.10);
+    --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0; padding:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{ max-width:920px; margin:0 auto; padding:32px 20px 120px; }
+
+  /* header */
+  header{ margin-bottom:28px; }
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin:0 0 10px;
+  }
+  h1{
+    font-size:28px;
+    line-height:1.2;
+    margin:0 0 8px;
+    letter-spacing:-0.01em;
+  }
+  .sub{
+    color:var(--text-dim);
+    font-size:14.5px;
+    line-height:1.6;
+    margin:0;
+    max-width:64ch;
+  }
+
+  /* pipeline nav — the signature element */
+  .pipeline{
+    display:flex;
+    align-items:center;
+    gap:0;
+    margin:28px 0 22px;
+    overflow-x:auto;
+    padding:4px 2px 14px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .stage{
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:9px 14px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    background:var(--surface);
+    cursor:pointer;
+    font-family:var(--mono);
+    font-size:12.5px;
+    color:var(--text-dim);
+    white-space:nowrap;
+    transition:border-color .15s ease, color .15s ease, background .15s ease, box-shadow .15s ease;
+  }
+  .stage .n{ color:var(--text-faint); }
+  .stage:hover{ border-color:#333a4a; color:var(--text); }
+  .stage.active{
+    border-color:var(--accent);
+    color:var(--text);
+    background:var(--accent-dim);
+    box-shadow:0 0 0 1px var(--accent-glow), 0 0 24px var(--accent-glow);
+  }
+  .stage.active .n{ color:var(--accent); }
+  .connector{
+    flex:0 0 22px;
+    height:1px;
+    background:var(--border);
+    margin:0 2px;
+  }
+
+  /* search */
+  .search-row{
+    position:relative;
+    margin-bottom:26px;
+  }
+  #search{
+    width:100%;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:8px;
+    color:var(--text);
+    font-size:14.5px;
+    padding:12px 14px 12px 38px;
+    font-family:var(--sans);
+  }
+  #search:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
+  #search::placeholder{ color:var(--text-faint); }
+  .search-icon{
+    position:absolute; left:13px; top:50%; transform:translateY(-50%);
+    width:15px; height:15px; opacity:.5;
+  }
+
+  .count{
+    font-family:var(--mono);
+    font-size:11.5px;
+    color:var(--text-faint);
+    margin:0 0 16px;
+    letter-spacing:0.03em;
+  }
+
+  /* stage section headers */
+  .stage-heading{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--text-faint);
+    margin:34px 0 12px;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--border-soft);
+  }
+  .stage-heading:first-of-type{ margin-top:6px; }
+
+  /* card */
+  .card{
+    border:1px solid var(--border);
+    background:var(--surface);
+    border-radius:10px;
+    padding:16px 18px;
+    margin-bottom:10px;
+  }
+  .card-top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:6px;
+  }
+  .symptom{
+    font-size:15px;
+    font-weight:600;
+    line-height:1.4;
+    margin:0;
+  }
+  .badge{
+    flex:0 0 auto;
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    padding:3px 8px;
+    border-radius:5px;
+    white-space:nowrap;
+    margin-top:2px;
+  }
+  .badge.high{ color:var(--high); background:var(--high-bg); }
+  .badge.setup{ color:var(--setup); background:var(--setup-bg); }
+  .badge.rare{ color:var(--rare); background:var(--rare-bg); }
+
+  .cause{
+    color:var(--text-dim);
+    font-size:13.5px;
+    line-height:1.6;
+    margin:0 0 12px;
+  }
+  .cause b{ color:var(--text); font-weight:600; }
+
+  .fix{
+    background:var(--surface-2);
+    border:1px solid var(--border-soft);
+    border-radius:8px;
+    padding:12px 14px;
+  }
+  .fix-label{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--text-faint);
+    margin:0 0 8px;
+  }
+  .fix ol{ margin:0; padding-left:18px; }
+  .fix li{
+    font-size:13.5px;
+    line-height:1.65;
+    color:var(--text);
+    margin-bottom:5px;
+  }
+  .fix li:last-child{ margin-bottom:0; }
+  .fix code{
+    background:var(--bg);
+    border:1px solid var(--border-soft);
+    border-radius:4px;
+    padding:1px 6px;
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--accent);
+  }
+
+  .empty{
+    text-align:center;
+    color:var(--text-faint);
+    font-size:14px;
+    padding:60px 20px;
+  }
+
+  /* footer */
+  .footer{
+    position:fixed;
+    left:0; right:0; bottom:0;
+    background:linear-gradient(180deg, rgba(10,12,16,0) 0%, var(--bg) 40%);
+    padding:36px 20px 20px;
+    pointer-events:none;
+  }
+  .footer-inner{
+    max-width:920px;
+    margin:0 auto;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:14px 18px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    pointer-events:auto;
+    flex-wrap:wrap;
+  }
+  .footer-text{ font-size:13px; color:var(--text-dim); }
+  .footer-text b{ color:var(--text); }
+  .footer a{
+    color:var(--accent);
+    text-decoration:none;
+    font-size:13px;
+    font-weight:600;
+    white-space:nowrap;
+  }
+  .footer a:hover{ text-decoration:underline; }
+
+  @media (max-width:560px){
+    h1{ font-size:23px; }
+    .wrap{ padding:22px 16px 130px; }
+  }
+
+  :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Faceless YouTube Kit</p>
+    <h1>When something breaks</h1>
+    <p class="sub">Find the stage where it went wrong, or search for what you're seeing. Every entry below is a real failure mode from building this system — most only apply if you've changed something; a couple can happen to anyone on first setup.</p>
+  </header>
+
+  <nav class="pipeline" id="pipeline">
+    <div class="stage active" data-stage="all"><span>All stages</span></div>
+    <div class="connector"></div>
+    <div class="stage" data-stage="script"><span class="n">01</span><span>Script</span></div>
+    <div class="connector"></div>
+    <div class="stage" data-stage="voice"><span class="n">02</span><span>Voice</span></div>
+    <div class="connector"></div>
+    <div class="stage" data-stage="render"><span class="n">03</span><span>Render</span></div>
+    <div class="connector"></div>
+    <div class="stage" data-stage="upload"><span class="n">04</span><span>Upload</span></div>
+    <div class="connector"></div>
+    <div class="stage" data-stage="distribute"><span class="n">05</span><span>Distribute</span></div>
+    <div class="connector"></div>
+    <div class="stage" data-stage="setup"><span>Setup / Airtable</span></div>
+  </nav>
+
+  <div class="search-row">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input id="search" type="text" placeholder="Search a symptom — e.g. 401, wrong channel, duplicate post" autocomplete="off">
+  </div>
+
+  <p class="count" id="count"></p>
+
+  <div id="results"></div>
+</div>
+
+<div class="footer">
+  <div class="footer-inner">
+    <div class="footer-text">Still stuck after trying the fix? <b>We reply to every email</b> — just not able to debug your specific deploy live.</div>
+    <a href="mailto:brian@compass-line-ventures.com?subject=Venture%20Void%20Kit%20—%20Support">Email support →</a>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {
+    stage:"script",
+    stageLabel:"01 · Script Generation",
+    symptom:"Pipeline runs but no scripts generate — Airtable queue stays empty",
+    severity:"high",
+    severityLabel:"Common on first setup",
+    cause:"Almost always an Anthropic API spending cap that's still on its low default. Once the cap is hit, script generation fails silently — no error in your logs, the pipeline just produces nothing.",
+    fix:[
+      "Go to <code>console.anthropic.com</code> and check your organization's spending limit",
+      "Raise it — $15/month comfortably covers a daily-posting channel",
+      "Manually trigger the weekly script generator once to refill the queue",
+      "Confirm new records appear in Airtable's Video Library table"
+    ]
+  },
+  {
+    stage:"script",
+    stageLabel:"01 · Script Generation",
+    symptom:"\"Invalid API key\" error on script generation",
+    severity:"setup",
+    severityLabel:"Setup error",
+    cause:"The <code>ANTHROPIC_API_KEY</code> variable in Railway is missing, mistyped, or was copied with extra whitespace.",
+    fix:[
+      "Open your Railway project → Variables tab",
+      "Re-copy the key directly from console.anthropic.com, no surrounding spaces",
+      "Save — Railway will redeploy automatically"
+    ]
+  },
+  {
+    stage:"script",
+    stageLabel:"01 · Script Generation",
+    symptom:"Same video topics keep getting generated",
+    severity:"rare",
+    severityLabel:"Only if modified",
+    cause:"The weekly generator checks your existing Video Library titles before finalizing new ones. This only breaks if the Trending Topics or Video Library table structure was changed after duplicating the base.",
+    fix:[
+      "Confirm your duplicated Airtable base still has the Video Library and Trending Topics tables with their original field names",
+      "Don't rename the title field the dedup check reads from"
+    ]
+  },
+  {
+    stage:"voice",
+    stageLabel:"02 · Voice Generation",
+    symptom:"401 Unauthorized from ElevenLabs, every render fails",
+    severity:"high",
+    severityLabel:"Common on first setup",
+    cause:"Invalid, expired, or mistyped <code>ELEVENLABS_API_KEY</code>.",
+    fix:[
+      "Log into ElevenLabs → Profile → API Keys",
+      "Regenerate the key if you're unsure it's current",
+      "Update <code>ELEVENLABS_API_KEY</code> in Railway's Variables tab",
+      "Redeploy and trigger a single test render"
+    ]
+  },
+  {
+    stage:"voice",
+    stageLabel:"02 · Voice Generation",
+    symptom:"Voice doesn't match what you picked",
+    severity:"setup",
+    severityLabel:"Setup error",
+    cause:"<code>ELEVENLABS_VOICE_ID</code> wasn't updated when you chose a different voice than the default.",
+    fix:[
+      "Find your voice's ID on the ElevenLabs voice library page (not the voice name — the ID string)",
+      "Update <code>ELEVENLABS_VOICE_ID</code> in Railway",
+      "Redeploy"
+    ]
+  },
+  {
+    stage:"voice",
+    stageLabel:"02 · Voice Generation",
+    symptom:"Renders stop partway through the month",
+    severity:"setup",
+    severityLabel:"Setup error",
+    cause:"ElevenLabs free-tier character quota exhausted. Daily long-form scripts add up fast.",
+    fix:[
+      "Check usage under ElevenLabs → Usage",
+      "Upgrade tier if you're posting daily — free tier is built for testing, not production volume"
+    ]
+  },
+  {
+    stage:"render",
+    stageLabel:"03 · Rendering",
+    symptom:"Render never finishes, container appears to restart mid-render",
+    severity:"rare",
+    severityLabel:"Only if modified",
+    cause:"The kit ships with a dedicated health-check thread so Railway doesn't kill the container during heavy ffmpeg work. This only resurfaces if you've dropped Railway to a resource tier too small to run both threads.",
+    fix:[
+      "Check Railway's resource usage graph during a render",
+      "If CPU or memory is maxing out, move up one Railway plan tier"
+    ]
+  },
+  {
+    stage:"render",
+    stageLabel:"03 · Rendering",
+    symptom:"Video renders but b-roll is missing or blank",
+    severity:"setup",
+    severityLabel:"Setup error",
+    cause:"Missing or invalid <code>PEXELS_API_KEY</code>.",
+    fix:[
+      "Confirm you signed up at pexels.com/api and copied the key correctly",
+      "Update <code>PEXELS_API_KEY</code> in Railway",
+      "Redeploy and re-trigger the render"
+    ]
+  },
+  {
+    stage:"upload",
+    stageLabel:"04 · YouTube Upload",
+    symptom:"Videos are uploading to the wrong YouTube channel",
+    severity:"high",
+    severityLabel:"Highest-risk step",
+    cause:"This happens at the OAuth consent screen — if you were logged into your personal Google account instead of your channel's account when you authorized access, every token minted afterward points at the wrong channel.",
+    fix:[
+      "Log out of all Google accounts in your browser, or use an incognito window",
+      "Log in <b>only</b> to the Google account tied to your YouTube channel",
+      "Redo the OAuth authorization flow from the setup doc",
+      "Generate a fresh <code>YOUTUBE_REFRESH_TOKEN</code> and update it in Railway",
+      "Confirm with a single test upload before resuming the daily schedule"
+    ]
+  },
+  {
+    stage:"upload",
+    stageLabel:"04 · YouTube Upload",
+    symptom:"\"invalid_grant\" error on upload",
+    severity:"setup",
+    severityLabel:"Setup error",
+    cause:"Your refresh token expired or was revoked — often from changing your Google account password or revoking app access.",
+    fix:[
+      "Go back through the OAuth Playground steps in the setup doc",
+      "Generate a new refresh token",
+      "Update <code>YOUTUBE_REFRESH_TOKEN</code> in Railway"
+    ]
+  },
+  {
+    stage:"upload",
+    stageLabel:"04 · YouTube Upload",
+    symptom:"Video uploads fine but the thumbnail doesn't apply",
+    severity:"rare",
+    severityLabel:"Only if modified",
+    cause:"Thumbnail generation failed silently, or the YouTube account doesn't have custom thumbnails enabled (requires phone verification on the channel).",
+    fix:[
+      "Confirm your channel has phone verification enabled in YouTube Studio — required for custom thumbnails",
+      "Check Railway logs for a thumbnail-step error on that specific render"
+    ]
+  },
+  {
+    stage:"distribute",
+    stageLabel:"05 · TikTok / Facebook",
+    symptom:"Same video posts to TikTok or Facebook more than once",
+    severity:"rare",
+    severityLabel:"Only if modified",
+    cause:"The kit prevents this with a \"Zernio Posted\" checkbox field in your Airtable base. This only breaks if that field was renamed, deleted, or the base wasn't duplicated correctly.",
+    fix:[
+      "Open your Airtable base and confirm a \"Zernio Posted\" checkbox field exists on the Video Library table",
+      "If it's missing, re-duplicate the base from the template link rather than rebuilding it by hand"
+    ]
+  },
+  {
+    stage:"distribute",
+    stageLabel:"05 · TikTok / Facebook",
+    symptom:"Zernio returns a 400 error on post attempts",
+    severity:"rare",
+    severityLabel:"Only if modified",
+    cause:"Almost always a hand-edit to the posting code changing how media is sent to Zernio's API.",
+    fix:[
+      "If you've customized the posting logic, revert to the shipped version and confirm posting works",
+      "Re-apply your customization one change at a time, testing after each"
+    ]
+  },
+  {
+    stage:"distribute",
+    stageLabel:"05 · TikTok / Facebook",
+    symptom:"Zernio can't fetch the video — file not found",
+    severity:"rare",
+    severityLabel:"Only if modified",
+    cause:"The kit serves video files through a proxy built specifically to work around Google Drive's link restrictions on large files. This breaks if you change how or where video files are stored.",
+    fix:[
+      "Don't move video storage off the setup described in the doc without adjusting the proxy endpoint to match",
+      "If you did change storage, the proxy's file-fetch logic needs updating to point at the new location"
+    ]
+  },
+  {
+    stage:"distribute",
+    stageLabel:"05 · TikTok / Facebook",
+    symptom:"TikTok holds or flags a post for advertisement disclosure",
+    severity:"rare",
+    severityLabel:"Only if modified",
+    cause:"Captions are auto-sanitized to strip affiliate links, dollar amounts, and promotional language before posting — TikTok's algorithm flags exactly that kind of language as undisclosed advertising. This only resurfaces if the caption generation prompt was edited.",
+    fix:[
+      "If you changed the caption prompt, keep the sanitizer step in place regardless",
+      "Avoid dollar amounts and affiliate links in caption text even if your script mentions them"
+    ]
+  },
+  {
+    stage:"setup",
+    stageLabel:"Setup / Airtable",
+    symptom:"Railway deploy fails immediately",
+    severity:"setup",
+    severityLabel:"Setup error",
+    cause:"A required environment variable was left blank in the deploy-time form.",
+    fix:[
+      "Open the failed deployment's build log in Railway",
+      "It names the missing variable directly — fill it in under the Variables tab",
+      "Redeploy"
+    ]
+  },
+  {
+    stage:"setup",
+    stageLabel:"Setup / Airtable",
+    symptom:"\"Table not found\" or field-mismatch errors",
+    severity:"setup",
+    severityLabel:"Setup error",
+    cause:"The Airtable base wasn't duplicated from the template link, or a table/field was renamed after duplicating.",
+    fix:[
+      "Re-duplicate the base from the original template link",
+      "Copy the new <code>AIRTABLE_BASE_ID</code> and table IDs into Railway exactly as shown in the setup doc",
+      "Don't rename tables or fields — the pipeline reads them by name"
+    ]
+  }
+];
+
+const results = document.getElementById('results');
+const countEl = document.getElementById('count');
+const searchEl = document.getElementById('search');
+const stageButtons = document.querySelectorAll('.stage');
+
+let activeStage = 'all';
+let query = '';
+
+const STAGE_ORDER = ["script","voice","render","upload","distribute","setup"];
+
+function render(){
+  let items = DATA.filter(d => activeStage === 'all' || d.stage === activeStage);
+  if(query.trim()){
+    const q = query.toLowerCase();
+    items = items.filter(d =>
+      d.symptom.toLowerCase().includes(q) ||
+      d.cause.toLowerCase().includes(q) ||
+      d.fix.join(' ').toLowerCase().includes(q)
+    );
+  }
+
+  countEl.textContent = items.length === 1 ? '1 result' : items.length + ' results';
+
+  if(items.length === 0){
+    results.innerHTML = '<div class="empty">Nothing matches. Try a broader term, or email support below.</div>';
+    return;
+  }
+
+  let html = '';
+  let lastStage = null;
+  const grouped = activeStage === 'all' && !query.trim();
+
+  // sort by pipeline order when showing everything
+  if(grouped){
+    items.sort((a,b) => STAGE_ORDER.indexOf(a.stage) - STAGE_ORDER.indexOf(b.stage));
+  }
+
+  items.forEach(d => {
+    if(grouped && d.stage !== lastStage){
+      html += `<div class="stage-heading">${d.stageLabel}</div>`;
+      lastStage = d.stage;
+    }
+    html += `
+      <div class="card">
+        <div class="card-top">
+          <p class="symptom">${d.symptom}</p>
+          <span class="badge ${d.severity}">${d.severityLabel}</span>
+        </div>
+        <p class="cause">${d.cause}</p>
+        <div class="fix">
+          <p class="fix-label">Fix</p>
+          <ol>${d.fix.map(step => `<li>${step}</li>`).join('')}</ol>
+        </div>
+      </div>
+    `;
+  });
+
+  results.innerHTML = html;
+}
+
+stageButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    stageButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeStage = btn.dataset.stage;
+    render();
+  });
+});
+
+searchEl.addEventListener('input', (e) => {
+  query = e.target.value;
+  render();
+});
+
+render();
+</script>
+
+</body>
+</html>
