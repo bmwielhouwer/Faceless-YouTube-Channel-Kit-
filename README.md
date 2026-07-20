@@ -11,7 +11,7 @@ You bring the niche and the accounts. The Kit does the production line.
 
 ## ⚡ One-click deploy
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/SR1JiI?referralCode=8BjSR-)
 
 Clicking **Deploy on Railway** spins up your own private copy of this pipeline in
 the cloud as an always-on worker. Railway asks you to paste in your settings
